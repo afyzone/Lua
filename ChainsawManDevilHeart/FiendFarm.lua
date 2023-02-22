@@ -11,23 +11,25 @@ local plr = players.LocalPlayer
         end
     end)
 
-    local old; old = hookmetamethod(game, '__namecall', function(self, ...) 
-        local args = {...}
+    clonefunction(loadstring)([[
+        local old; old = hookmetamethod(game, '__namecall', function(self, ...) 
+            local args = {...}
 
-        if (getnamecallmethod() == "Kick" or getnamecallmethod() == "kick") then
-            return
-        end
+            if (getnamecallmethod() == "Kick" or getnamecallmethod() == "kick") then
+                return
+            end
 
-        if getnamecallmethod() == 'InvokeServer' and self.Name == 'check' then
-            return
-        end
+            if getnamecallmethod() == 'InvokeServer' and self.Name == 'check' then
+                return
+            end
 
-        if (getnamecallmethod() == 'FireServer' and args[1] == 'SprintBurst' or args[1] == 'KickBack') then 
-            return 
-        end
-
-        return old(self, ...)
-    end)
+            if (getnamecallmethod() == 'FireServer' and args[1] == 'SprintBurst' or args[1] == 'KickBack') then 
+                return 
+            end
+        
+            return old(self, ...)
+        end)
+    ]])
 
     plr.DevCameraOcclusionMode = "Invisicam"
     if plr and plr.PlayerScripts and plr.PlayerScripts:FindFirstChild('Effects') then
@@ -39,24 +41,8 @@ end
 local moveto, click_button, get_quest, closest_npc, gotomob, attack, antifall, nocooldown, kill_fiends; do
     moveto = function(pos, offset)
         if plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
-            local offset = offset or CFrame.new(0, 0, 0);
-
-            local path = game:GetService("PathfindingService"):CreatePath()
-            path:ComputeAsync(plr.Character.HumanoidRootPart.Position, (((typeof(pos) == 'CFrame' and pos) or (typeof(pos) == 'Vector3' and CFrame.new(pos)) or pos.CFrame) * offset))
-            local points = path:GetWaypoints()
-            local count = 1
-            local counterpoints = #points
-            local countvalue = 1
-            for i = 1, counterpoints do
-                local ts = game:GetService("TweenService")
-                local tweenInfo = TweenInfo.new(0.03)
-                local t = ts:Create(plr.Character.HumanoidRootPart, tweenInfo, {
-                    CFrame = CFrame.new(points[i].Position + Vector3.new(0,3,0))
-                })
-                t:Play()
-                countvalue = countvalue + 1
-                task.wait(0.06)
-            end
+            local offset = offset or CFrame.new(0, 0, 0)
+            plr.Character.HumanoidRootPart.CFrame = (((typeof(pos) == 'CFrame' and pos) or (typeof(pos) == 'Vector3' and CFrame.new(pos)) or pos.CFrame) * offset)
         end
     end;
 
@@ -69,7 +55,7 @@ local moveto, click_button, get_quest, closest_npc, gotomob, attack, antifall, n
         if not plr.PlayerGui:FindFirstChild('Quest') then
             repeat task.wait()
                 repeat task.wait()
-                    moveto(game:GetService("Workspace").DialogNPCs["grown up boy"].HumanoidRootPart, CFrame.new(0,0,2))
+                    moveto(game:GetService("Workspace").DialogNPCs["grown up boy"].HumanoidRootPart, CFrame.new(0,6,0))
                     fireproximityprompt(game:GetService("Workspace").DialogNPCs["grown up boy"].ProximityPrompt)
                 until plr:FindFirstChild('PlayerGui') and plr.PlayerGui:FindFirstChild('ProximityPrompts') and plr.PlayerGui.ProximityPrompts:FindFirstChild('Prompt') and plr.PlayerGui.ProximityPrompts.Prompt:FindFirstChild('TextButton') or plr.PlayerGui:FindFirstChild('Quest')
                 
@@ -92,19 +78,20 @@ local moveto, click_button, get_quest, closest_npc, gotomob, attack, antifall, n
     end
 
     gotomob = function(mob)
-        if (not mob) then return end
-        moveto(CFrame.new(mob.PrimaryPart.Position + Vector3.new(0, 0, 5), mob.PrimaryPart.Position))
-        if (isnetworkowner(mob.PrimaryPart)) then
-            for i,v in pairs(mob:GetChildren()) do
-                if not v:IsA('BasePart') then continue end
-                
-                v.Size = Vector3.new(25, 25, 25)
-                v.CanCollide = false
-                v.Transparency = 1
-                
-                if v.Name == 'Head' then
-                    for i,v2 in pairs(v:GetChildren()) do
-                        v2:Destroy()
+        if (mob and mob.PrimaryPart ~= nil) then
+            moveto(CFrame.new(mob.PrimaryPart.Position + Vector3.new(0, 7, 3), mob.PrimaryPart.Position))
+            if (isnetworkowner(mob.PrimaryPart)) then
+                for i,v in pairs(mob:GetChildren()) do
+                    if not v:IsA('BasePart') then continue end
+                    
+                    v.Size = Vector3.new(25, 25, 25)
+                    v.CanCollide = false
+                    v.Transparency = 1
+                    
+                    if v.Name == 'Head' then
+                        for i,v2 in pairs(v:GetChildren()) do
+                            v2:Destroy()
+                        end
                     end
                 end
             end
@@ -139,27 +126,11 @@ local moveto, click_button, get_quest, closest_npc, gotomob, attack, antifall, n
             gotomob(closest_npc)
             attack(closest_npc)
         until not closest_npc or not closest_npc.PrimaryPart or (closest_npc:FindFirstChild('Humanoid') and closest_npc.Humanoid.Health == 0)
+        task.wait(5)
     end
 end
 
 --[[ Main ]] do
-    noclip = function()
-        Clip = false
-        local function Nocl()
-            if Clip == false and game.Players.LocalPlayer.Character ~= nil then
-                for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                    if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
-                        v.CanCollide = false
-                    end
-                end
-            end
-            wait(0.21)
-        end
-        Noclip = RunService.Stepped:Connect(Nocl)
-    end
-
-    noclip()
-
     while task.wait() do
         kill_fiends()
     end
